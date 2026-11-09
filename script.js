@@ -1,3 +1,32 @@
+
+const marqueeTrack = document.querySelector(".hero-product-track");
+if (marqueeTrack) {
+  const halfWidth = marqueeTrack.scrollWidth / 2;
+  gsap.to(marqueeTrack, {
+    x: -halfWidth,
+    duration: 28,
+    ease: "none",
+    repeat: -1,
+    modifiers: {
+      x: (x) => {
+        const n = parseFloat(x);
+        return `${n <= -halfWidth ? n + halfWidth : n}px`;
+      }
+    }
+  });
+
+  document.querySelectorAll(".hero-product img").forEach((img, i) => {
+    gsap.to(img, {
+      y: i % 2 ? 18 : -18,
+      rotation: i % 2 ? 3 : -3,
+      duration: 2.8 + (i % 4) * .45,
+      ease: "sine.inOut",
+      repeat: -1,
+      yoyo: true
+    });
+  });
+}
+
 gsap.registerPlugin(ScrollTrigger);
 
 const lenis = new Lenis({ duration: 1.1, smoothWheel: true, wheelMultiplier: 0.9 });
@@ -5,10 +34,6 @@ lenis.on("scroll", ScrollTrigger.update);
 gsap.ticker.add((time) => lenis.raf(time * 1000));
 gsap.ticker.lagSmoothing(0);
 
-gsap.from(".hero-title .line", { yPercent: 120, opacity: 0, duration: 1.2, ease: "power4.out", stagger: 0.08 });
-gsap.from(".reveal", { y: 28, opacity: 0, duration: 1, ease: "power3.out", stagger: 0.1, delay: 0.35 });
-gsap.to(".hero-orbit img", { y: -30, rotation: 8, ease: "none", scrollTrigger:{trigger:".hero",start:"top top",end:"bottom top",scrub:1.2}});
-gsap.to(".orbit-ring", { rotation:180, duration:24, repeat:-1, ease:"none" });
 gsap.from(".manifesto-text", { y:70, opacity:0, scrollTrigger:{trigger:".manifesto",start:"top 72%",end:"top 42%",scrub:1}});
 
 const showcase = document.querySelector(".product-showcase");
