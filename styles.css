@@ -157,3 +157,34 @@ background-size:8vw 8vw;mask-image:linear-gradient(to bottom,transparent,black 1
 .showcase-item[data-index="7"] .showcase-product>img{
   filter:contrast(1.12) saturate(1.08) drop-shadow(0 45px 45px rgba(0,0,0,.32));
 }
+
+/* Direct dock interaction + product hover stage */
+.product-dock{
+  isolation:isolate;
+  touch-action:manipulation;
+  user-select:none;
+}
+.product-dock button{
+  -webkit-appearance:none;
+  appearance:none;
+  touch-action:manipulation;
+}
+.product-dock button:active{
+  transform:translateY(-2px) scale(.92);
+}
+.showcase-product{
+  perspective:1000px;
+}
+.showcase-product>img,
+.showcase-product .image-medallion{
+  will-change:transform;
+  transform-style:preserve-3d;
+  transform-origin:center center;
+}
+.showcase-product:hover .product-floor{
+  transform:scaleX(1.12);
+  opacity:.78;
+}
+.product-floor{
+  transition:transform .35s ease,opacity .35s ease;
+}
