@@ -119,15 +119,15 @@ background-size:8vw 8vw;mask-image:linear-gradient(to bottom,transparent,black 1
 .hero-product:focus-visible{outline:2px solid #d84a26;outline-offset:8px;border-radius:22px}
 
 /* The flour source image has a white matte; multiply lets the matte disappear on Campelo backgrounds. */
-.hero-product-5 img,
-.showcase-item[data-index="4"] .showcase-product>img{
+.hero-product-2 img,
+.showcase-item[data-index="1"] .showcase-product>img{
   mix-blend-mode:multiply;
   filter:contrast(1.04) saturate(.96) drop-shadow(0 28px 30px rgba(55,32,16,.2));
 }
-.showcase-item[data-index="4"] .showcase-product{
+.showcase-item[data-index="1"] .showcase-product{
   isolation:isolate;
 }
-.showcase-item[data-index="4"] .product-aura{
+.showcase-item[data-index="1"] .product-aura{
   opacity:.42;
 }
 
@@ -188,3 +188,5 @@ background-size:8vw 8vw;mask-image:linear-gradient(to bottom,transparent,black 1
 .product-floor{
   transition:transform .35s ease,opacity .35s ease;
 }
+
+.showcase-price{margin-top:18px;font-family:"Italiana",serif;font-size:22px;letter-spacing:.01em;opacity:.9}
