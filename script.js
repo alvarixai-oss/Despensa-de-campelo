@@ -15,16 +15,15 @@ let heroGateLocked = document.body.classList.contains("hero-gate-locked");
 let heroProgress = 0;
 let heroTouchY = 0;
 
-function getHeroTravel() {
+function getHeroLoopWidth() {
   if (!marqueeTrack) return 0;
-  const halfWidth = marqueeTrack.scrollWidth / 2;
-  return Math.max(0, halfWidth - window.innerWidth * 0.52);
+  return marqueeTrack.scrollWidth / 2;
 }
 
 function renderHeroProgress(progress, immediate = false) {
-  heroProgress = Math.max(0, Math.min(1, progress));
-  const travel = getHeroTravel();
-  const x = -travel * heroProgress;
+  heroProgress = ((progress % 1) + 1) % 1;
+  const loopWidth = getHeroLoopWidth();
+  const x = -loopWidth * heroProgress;
 
   gsap.to(marqueeTrack, {
     x,
