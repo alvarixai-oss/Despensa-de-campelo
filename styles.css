@@ -245,3 +245,71 @@ img[src*="29-ajonegro.jpg"]{
 .showcase-product>img{
   background:transparent;
 }
+
+/* Final hero cleanup */
+html,
+body.hero-gate-locked{
+  background:#fbf2e7!important;
+}
+body.hero-gate-locked{
+  margin:0!important;
+  padding:0!important;
+}
+body.hero-gate-locked .agrumea-hero{
+  top:0!important;
+  margin-top:0!important;
+  border-top:0!important;
+}
+
+/* Larger Campelo logo */
+.hero-brand img{
+  width:94px!important;
+  height:82px!important;
+}
+.hero-brand strong{
+  font-size:26px!important;
+}
+.hero-brand small{
+  font-size:11px!important;
+  margin-top:4px!important;
+}
+
+/* Make white-backed source photos visually transparent.
+   Important: disable isolation so multiply can blend with the real page behind it. */
+.hero-product:has(img[src*="integral.png"]),
+.hero-product:has(img[src*="29-ajonegro.jpg"]),
+.hero-product-media:has(img[src*="integral.png"]),
+.hero-product-media:has(img[src*="29-ajonegro.jpg"]),
+.showcase-product:has(img[src*="integral.png"]),
+.showcase-product:has(img[src*="29-ajonegro.jpg"]),
+.image-medallion:has(img[src*="29-ajonegro.jpg"]){
+  isolation:auto!important;
+  background:transparent!important;
+}
+
+.hero-product img[src*="integral.png"],
+.hero-product img[src*="29-ajonegro.jpg"],
+.showcase-product img[src*="integral.png"],
+.showcase-product img[src*="29-ajonegro.jpg"]{
+  mix-blend-mode:multiply!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  border:0!important;
+}
+
+.hero-product img[src*="integral.png"]{
+  filter:contrast(1.12) saturate(.92) brightness(.98) drop-shadow(0 24px 26px rgba(67,42,25,.16))!important;
+}
+.hero-product img[src*="29-ajonegro.jpg"]{
+  filter:contrast(1.10) saturate(1.02) brightness(1.01) drop-shadow(0 26px 28px rgba(55,32,16,.18))!important;
+}
+.showcase-product img[src*="integral.png"],
+.showcase-product img[src*="29-ajonegro.jpg"]{
+  filter:contrast(1.10) saturate(.98) drop-shadow(0 34px 34px rgba(0,0,0,.22))!important;
+}
+
+@media(max-width:900px){
+  .hero-brand img{width:66px!important;height:58px!important}
+  .hero-brand strong{font-size:19px!important}
+  .hero-brand small{font-size:8px!important}
+}
