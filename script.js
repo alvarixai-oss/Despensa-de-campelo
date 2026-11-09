@@ -81,31 +81,53 @@ const dockButtons = [...document.querySelectorAll(".product-dock button")];
 const counter = document.getElementById("stageCurrent");
 const progress = document.querySelector(".showcase-progress span");
 let activeIndex = 0;
+let isProgrammaticProductJump = false;
+let productTransitionToken = 0;
 
-function activateProduct(index, direction = 1) {
-  if (index === activeIndex && items[index].classList.contains("is-active")) return;
-  const oldItem = items[activeIndex];
+function activateProduct(index, direction = 1, instant = false) {
   const newItem = items[index];
   if (!newItem) return;
 
+  const token = ++productTransitionToken;
+  const oldItem = items[activeIndex];
   const oldCopy = oldItem?.querySelector(".showcase-copy");
   const oldProduct = oldItem?.querySelector(".showcase-product");
   const newCopy = newItem.querySelector(".showcase-copy");
   const newProduct = newItem.querySelector(".showcase-product");
   const newGhost = newItem.querySelector(".showcase-ghost");
 
-  items.forEach((it,i)=>{ if(i!==activeIndex && i!==index){ it.classList.remove("is-active"); gsap.set(it,{autoAlpha:0}); }});
-  if (oldItem) {
-    gsap.to(oldCopy,{x:-70*direction,autoAlpha:0,duration:.42,ease:"power2.in"});
-    gsap.to(oldProduct,{x:120*direction,rotation:10*direction,scale:.84,autoAlpha:0,duration:.48,ease:"power2.in"});
-    gsap.to(oldItem,{autoAlpha:0,duration:.5,onComplete:()=>oldItem.classList.remove("is-active")});
-  }
+  items.forEach((it, i) => {
+    gsap.killTweensOf(it);
+    gsap.killTweensOf(it.querySelector(".showcase-copy"));
+    gsap.killTweensOf(it.querySelector(".showcase-product"));
+    gsap.killTweensOf(it.querySelector(".showcase-ghost"));
+    if (i !== index) {
+      it.classList.remove("is-active");
+      gsap.set(it, { autoAlpha: 0, pointerEvents: "none" });
+    }
+  });
 
   newItem.classList.add("is-active");
-  gsap.set(newItem,{autoAlpha:1});
-  gsap.fromTo(newCopy,{x:70*direction,autoAlpha:0},{x:0,autoAlpha:1,duration:.75,ease:"power3.out",delay:.1});
-  gsap.fromTo(newProduct,{x:-120*direction,y:45,rotation:-12*direction,scale:.72,autoAlpha:0},{x:0,y:0,rotation:0,scale:1,autoAlpha:1,duration:.9,ease:"power4.out"});
-  gsap.fromTo(newGhost,{scale:1.12,autoAlpha:0},{scale:1,autoAlpha:1,duration:1,ease:"power2.out"});
+  gsap.set(newItem, { autoAlpha: 1, pointerEvents: "auto" });
+
+  if (instant || !oldItem || oldItem === newItem) {
+    gsap.set(newCopy, { x: 0, autoAlpha: 1 });
+    gsap.set(newProduct, { x: 0, y: 0, rotation: 0, scale: 1, autoAlpha: 1 });
+    gsap.set(newGhost, { scale: 1, autoAlpha: 1 });
+  } else {
+    gsap.fromTo(newCopy,
+      { x: 55 * direction, autoAlpha: 0 },
+      { x: 0, autoAlpha: 1, duration: .55, ease: "power3.out", overwrite: true }
+    );
+    gsap.fromTo(newProduct,
+      { x: -90 * direction, y: 28, rotation: -7 * direction, scale: .9, autoAlpha: 0 },
+      { x: 0, y: 0, rotation: 0, scale: 1, autoAlpha: 1, duration: .72, ease: "power3.out", overwrite: true }
+    );
+    gsap.fromTo(newGhost,
+      { scale: 1.05, autoAlpha: 0 },
+      { scale: 1, autoAlpha: 1, duration: .65, ease: "power2.out", overwrite: true }
+    );
+  }
 
   const tone = newItem.dataset.tone;
   const accent = newItem.dataset.accent;
@@ -113,11 +135,22 @@ function activateProduct(index, direction = 1) {
   stage.style.setProperty("--showcase-accent", accent);
   document.documentElement.style.setProperty("--showcase-accent", accent);
 
-  counter.textContent = String(index + 1).padStart(2,"0");
-  dockButtons.forEach((b,i)=>b.classList.toggle("is-active",i===index));
-  gsap.to(progress,{width:`${((index+1)/items.length)*100}%`,duration:.55,ease:"power3.out"});
+  counter.textContent = String(index + 1).padStart(2, "0");
+  dockButtons.forEach((b, i) => {
+    const selected = i === index;
+    b.classList.toggle("is-active", selected);
+    b.setAttribute("aria-pressed", selected ? "true" : "false");
+  });
+
+  gsap.to(progress, {
+    width: `${((index + 1) / items.length) * 100}%`,
+    duration: instant ? 0 : .35,
+    ease: "power2.out",
+    overwrite: true
+  });
+
   activeIndex = index;
-  startAmbientMotion(newItem, index);
+  if (token === productTransitionToken) startAmbientMotion(newItem, index);
 }
 
 let ambientTweens = [];
@@ -145,16 +178,36 @@ steps.forEach((step,index)=>{
     trigger:step,
     start:"top center",
     end:"bottom center",
-    onEnter:()=>activateProduct(index,1),
-    onEnterBack:()=>activateProduct(index,-1)
+    onEnter:()=>{ if(!isProgrammaticProductJump) activateProduct(index,1); },
+    onEnterBack:()=>{ if(!isProgrammaticProductJump) activateProduct(index,-1); }
   });
 });
 
 dockButtons.forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    const i=Number(btn.dataset.go);
-    const target=steps[i];
-    if(target) lenis.scrollTo(target,{offset:window.innerHeight*.02,duration:1.25});
+  btn.addEventListener("click",(e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+
+    const i = Number(btn.dataset.go);
+    const target = steps[i];
+    if (!target) return;
+
+    const direction = i >= activeIndex ? 1 : -1;
+    isProgrammaticProductJump = true;
+    activateProduct(i, direction, false);
+
+    lenis.scrollTo(target, {
+      offset: window.innerHeight * .02,
+      duration: .75,
+      onComplete: () => {
+        isProgrammaticProductJump = false;
+        ScrollTrigger.update();
+      }
+    });
+
+    window.setTimeout(() => {
+      isProgrammaticProductJump = false;
+    }, 950);
   });
 });
 
@@ -215,4 +268,4 @@ if (!reduceMotion) {
   });
 }
 
-window.addEventListener("load",()=>{startAmbientMotion(items[0],0);activateProduct(0,1);ScrollTrigger.refresh()});
+window.addEventListener("load",()=>{activateProduct(0,1,true);ScrollTrigger.refresh()});
