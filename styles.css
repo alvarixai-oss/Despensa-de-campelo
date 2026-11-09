@@ -110,3 +110,32 @@ background-size:8vw 8vw;mask-image:linear-gradient(to bottom,transparent,black 1
   .hero-footer-line{left:14px;right:14px;font-size:9px}
   .hero-scroll-hint span{display:none}
 }
+
+/* Performance + richer product motion */
+.hero-product{cursor:pointer;contain:layout paint style;transform-style:preserve-3d}
+.hero-product-media{width:100%;height:100%;display:grid;place-items:center;transform-style:preserve-3d;will-change:transform}
+.hero-product img{backface-visibility:hidden;transform:translateZ(0);transition:filter .28s ease}
+.hero-product:hover img{filter:drop-shadow(0 34px 30px rgba(80,30,20,.28))}
+.hero-product:focus-visible{outline:2px solid #d84a26;outline-offset:8px;border-radius:22px}
+
+/* The flour source image has a white matte; multiply lets the matte disappear on Campelo backgrounds. */
+.hero-product-5 img,
+.showcase-item[data-index="4"] .showcase-product>img{
+  mix-blend-mode:multiply;
+  filter:contrast(1.04) saturate(.96) drop-shadow(0 28px 30px rgba(55,32,16,.2));
+}
+.showcase-item[data-index="4"] .showcase-product{
+  isolation:isolate;
+}
+.showcase-item[data-index="4"] .product-aura{
+  opacity:.42;
+}
+
+/* Avoid unnecessary rendering work below the fold until sections approach viewport. */
+.manifesto,.products-intro,.values,.closing{content-visibility:auto;contain-intrinsic-size:900px}
+.showcase-item{contain:layout paint style}
+.showcase-product,.showcase-product>img,.image-medallion{backface-visibility:hidden;transform:translateZ(0)}
+.product-orbit{will-change:transform}
+@media (prefers-reduced-motion:reduce){
+  .hero-product-media,.hero-product img,.showcase-product,.product-orbit{transform:none!important;transition:none!important}
+}
