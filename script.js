@@ -32,7 +32,7 @@ if (heroSection && marqueeTrack) {
   });
 
   heroProducts.forEach((product, i) => {
-    const img = product.querySelector("img");
+    const img = product.querySelector(".hero-product-media");
     if (!img) return;
     gsap.fromTo(img,
       { y: i % 2 ? 12 : -12, rotation: i % 2 ? 1.5 : -1.5 },
@@ -174,27 +174,35 @@ document.querySelectorAll("a[href^='#']").forEach((link)=>{
 });
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-if (!reduceMotion && window.THREE) {
-  const canvas=document.getElementById("webgl");
-  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:"high-performance"});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.7));
-  renderer.setSize(window.innerWidth,window.innerHeight);
-  const scene=new THREE.Scene();
-  const camera=new THREE.PerspectiveCamera(48,window.innerWidth/window.innerHeight,.1,100);
-  camera.position.z=5;
-  const group=new THREE.Group();scene.add(group);
-  const geometry=new THREE.IcosahedronGeometry(1.55,2);
-  const material=new THREE.MeshBasicMaterial({color:0xd6bd91,wireframe:true,transparent:true,opacity:.075});
-  const mesh=new THREE.Mesh(geometry,material);mesh.position.set(2.8,-.4,-1);group.add(mesh);
-  const pg=new THREE.BufferGeometry(),count=130,pos=new Float32Array(count*3);
-  for(let i=0;i<count;i++){pos[i*3]=(Math.random()-.5)*10;pos[i*3+1]=(Math.random()-.5)*8;pos[i*3+2]=(Math.random()-.5)*5}
-  pg.setAttribute("position",new THREE.BufferAttribute(pos,3));
-  const points=new THREE.Points(pg,new THREE.PointsMaterial({color:0xf0e5cf,size:.018,transparent:true,opacity:.3}));scene.add(points);
-  let targetX=0,targetY=0;
-  window.addEventListener("pointermove",(e)=>{targetX=(e.clientX/window.innerWidth-.5)*.35;targetY=(e.clientY/window.innerHeight-.5)*.25});
-  function render(){group.rotation.y+=.0015;group.rotation.x+=.0007;points.rotation.y+=.00025;camera.position.x+=(targetX-camera.position.x)*.03;camera.position.y+=(-targetY-camera.position.y)*.03;camera.lookAt(0,0,0);renderer.render(scene,camera);requestAnimationFrame(render)}
-  render();
-  window.addEventListener("resize",()=>{renderer.setSize(window.innerWidth,window.innerHeight);camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix()});
+
+// Lightweight Agrumea-style depth: scroll-driven pitch + pointer tilt, no WebGL.
+if (!reduceMotion) {
+  const finePointer = window.matchMedia("(pointer:fine)").matches;
+  const visibleHeroProducts = heroProducts.filter(p => p.getAttribute("aria-hidden") !== "true");
+
+  visibleHeroProducts.forEach((product, i) => {
+    const media = product.querySelector(".hero-product-media");
+    if (!media) return;
+
+    if (finePointer) {
+      const xTo = gsap.quickTo(media, "rotationY", { duration: .35, ease: "power2.out" });
+      const yTo = gsap.quickTo(media, "rotationX", { duration: .35, ease: "power2.out" });
+      const sTo = gsap.quickTo(media, "scale", { duration: .28, ease: "power2.out" });
+
+      product.addEventListener("pointermove", (e) => {
+        const r = product.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - .5;
+        const py = (e.clientY - r.top) / r.height - .5;
+        xTo(px * 12);
+        yTo(py * -9);
+        sTo(1.035);
+      }, { passive: true });
+
+      product.addEventListener("pointerleave", () => {
+        xTo(0); yTo(0); sTo(1);
+      }, { passive: true });
+    }
+  });
 }
 
 window.addEventListener("load",()=>{activateProduct(0,1);ScrollTrigger.refresh()});
