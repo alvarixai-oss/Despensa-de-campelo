@@ -190,3 +190,58 @@ background-size:8vw 8vw;mask-image:linear-gradient(to bottom,transparent,black 1
 }
 
 .showcase-price{margin-top:18px;font-family:"Italiana",serif;font-size:22px;letter-spacing:.01em;opacity:.9}
+
+/* Locked hero gate: vertical navigation opens only through top PRODUCTS */
+body.hero-gate-locked{
+  height:100vh;
+  overflow:hidden;
+  overscroll-behavior:none;
+  touch-action:none;
+}
+body.hero-gate-locked .agrumea-hero{
+  position:relative;
+  height:100vh;
+}
+body.hero-gate-locked .hero-scroll-hint{
+  opacity:.86;
+}
+body.hero-gate-locked .menu-pill{
+  cursor:pointer;
+  animation:productsPulse 2.2s ease-in-out infinite;
+}
+@keyframes productsPulse{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(3px)}
+}
+
+/* Remove visible white mattes from source product imagery */
+img[src*="integral.png"],
+img[src*="29-ajonegro.jpg"]{
+  mix-blend-mode:multiply;
+  background:transparent!important;
+  filter:contrast(1.08) saturate(1.04) drop-shadow(0 24px 28px rgba(55,32,16,.22));
+}
+.hero-product:has(img[src*="29-ajonegro.jpg"]) .hero-product-media,
+.showcase-product:has(img[src*="29-ajonegro.jpg"]){
+  background:transparent!important;
+}
+.image-medallion:has(img[src*="29-ajonegro.jpg"]){
+  background:transparent;
+  border:none;
+  overflow:visible;
+}
+.image-medallion:has(img[src*="29-ajonegro.jpg"]) img{
+  object-fit:contain;
+  border-radius:0;
+}
+
+/* Preserve transparency cleanly on all packshots */
+.hero-product-media,
+.showcase-product{
+  background:transparent;
+  isolation:isolate;
+}
+.hero-product-media img,
+.showcase-product>img{
+  background:transparent;
+}
