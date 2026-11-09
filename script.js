@@ -81,7 +81,7 @@ const dockButtons = [...document.querySelectorAll(".product-dock button")];
 const counter = document.getElementById("stageCurrent");
 const progress = document.querySelector(".showcase-progress span");
 let activeIndex = 0;
-let isProgrammaticProductJump = false;
+let manualSelectionUntil = 0;
 let productTransitionToken = 0;
 
 function activateProduct(index, direction = 1, instant = false) {
@@ -158,7 +158,6 @@ function startAmbientMotion(item, i) {
   ambientTweens.forEach(t => t.kill());
   ambientTweens = [];
   const product = item?.querySelector(".showcase-product");
-  const img = item?.querySelector(".showcase-product > img, .image-medallion");
   const orbitA = item?.querySelector(".orbit-a");
   const orbitB = item?.querySelector(".orbit-b");
   if (!product) return;
@@ -168,9 +167,6 @@ function startAmbientMotion(item, i) {
     gsap.to(orbitA,{rotation:360,duration:24+i,repeat:-1,ease:"none"}),
     gsap.to(orbitB,{rotation:-360,duration:19+i,repeat:-1,ease:"none"})
   );
-  if (img) ambientTweens.push(
-    gsap.to(img,{rotation:i%2?2.2:-2.2,duration:4.2,repeat:-1,yoyo:true,ease:"sine.inOut"})
-  );
 }
 
 steps.forEach((step,index)=>{
@@ -178,36 +174,31 @@ steps.forEach((step,index)=>{
     trigger:step,
     start:"top center",
     end:"bottom center",
-    onEnter:()=>{ if(!isProgrammaticProductJump) activateProduct(index,1); },
-    onEnterBack:()=>{ if(!isProgrammaticProductJump) activateProduct(index,-1); }
+    onEnter:()=>{ if(performance.now() > manualSelectionUntil) activateProduct(index,1); },
+    onEnterBack:()=>{ if(performance.now() > manualSelectionUntil) activateProduct(index,-1); }
   });
 });
 
 dockButtons.forEach(btn=>{
+  btn.addEventListener("pointerdown",(e)=>{
+    e.stopPropagation();
+  });
+
   btn.addEventListener("click",(e)=>{
     e.preventDefault();
     e.stopPropagation();
 
     const i = Number(btn.dataset.go);
-    const target = steps[i];
-    if (!target) return;
+    if (!Number.isInteger(i) || !items[i]) return;
 
+    manualSelectionUntil = performance.now() + 900;
     const direction = i >= activeIndex ? 1 : -1;
-    isProgrammaticProductJump = true;
     activateProduct(i, direction, false);
 
-    lenis.scrollTo(target, {
-      offset: window.innerHeight * .02,
-      duration: .75,
-      onComplete: () => {
-        isProgrammaticProductJump = false;
-        ScrollTrigger.update();
-      }
-    });
-
-    window.setTimeout(() => {
-      isProgrammaticProductJump = false;
-    }, 950);
+    gsap.fromTo(btn,
+      { scale: .88 },
+      { scale: 1, duration: .38, ease: "back.out(2.2)", overwrite: true }
+    );
   });
 });
 
@@ -224,6 +215,89 @@ if (showcase) {
         gsap.to(product,{rotationY:(local-.5)*10,rotationX:(local-.5)*-4,duration:.2,overwrite:true});
       }
     }
+  });
+}
+
+const showcaseProducts = [...document.querySelectorAll(".showcase-product")];
+const finePointerShowcase = window.matchMedia("(pointer:fine)").matches;
+
+if (finePointerShowcase) {
+  showcaseProducts.forEach((product) => {
+    const visual = product.querySelector(":scope > img, .image-medallion");
+    const aura = product.querySelector(".product-aura");
+    const chip = product.querySelector(".product-chip");
+    if (!visual) return;
+
+    gsap.set(visual, {
+      transformPerspective: 900,
+      transformOrigin: "50% 50%"
+    });
+
+    const rotateYTo = gsap.quickTo(visual, "rotationY", { duration: .28, ease: "power3.out" });
+    const rotateXTo = gsap.quickTo(visual, "rotationX", { duration: .28, ease: "power3.out" });
+    const scaleTo = gsap.quickTo(visual, "scale", { duration: .28, ease: "power3.out" });
+    const yTo = gsap.quickTo(visual, "y", { duration: .28, ease: "power3.out" });
+
+    product.addEventListener("pointerenter", () => {
+      scaleTo(1.085);
+      yTo(-12);
+
+      if (aura) {
+        gsap.to(aura, {
+          scale: 1.18,
+          opacity: .78,
+          duration: .35,
+          ease: "power2.out",
+          overwrite: true
+        });
+      }
+
+      if (chip) {
+        gsap.to(chip, {
+          y: -7,
+          scale: 1.06,
+          duration: .32,
+          ease: "power2.out",
+          overwrite: true
+        });
+      }
+    }, { passive: true });
+
+    product.addEventListener("pointermove", (e) => {
+      const r = product.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - .5;
+      const py = (e.clientY - r.top) / r.height - .5;
+
+      rotateYTo(px * 13);
+      rotateXTo(py * -9);
+    }, { passive: true });
+
+    product.addEventListener("pointerleave", () => {
+      rotateYTo(0);
+      rotateXTo(0);
+      scaleTo(1);
+      yTo(0);
+
+      if (aura) {
+        gsap.to(aura, {
+          scale: 1,
+          opacity: .55,
+          duration: .38,
+          ease: "power2.out",
+          overwrite: true
+        });
+      }
+
+      if (chip) {
+        gsap.to(chip, {
+          y: 0,
+          scale: 1,
+          duration: .32,
+          ease: "power2.out",
+          overwrite: true
+        });
+      }
+    }, { passive: true });
   });
 }
 
