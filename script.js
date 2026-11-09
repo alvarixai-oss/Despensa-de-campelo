@@ -1,38 +1,75 @@
-
-const marqueeTrack = document.querySelector(".hero-product-track");
-if (marqueeTrack) {
-  const halfWidth = marqueeTrack.scrollWidth / 2;
-  gsap.to(marqueeTrack, {
-    x: -halfWidth,
-    duration: 28,
-    ease: "none",
-    repeat: -1,
-    modifiers: {
-      x: (x) => {
-        const n = parseFloat(x);
-        return `${n <= -halfWidth ? n + halfWidth : n}px`;
-      }
-    }
-  });
-
-  document.querySelectorAll(".hero-product img").forEach((img, i) => {
-    gsap.to(img, {
-      y: i % 2 ? 18 : -18,
-      rotation: i % 2 ? 3 : -3,
-      duration: 2.8 + (i % 4) * .45,
-      ease: "sine.inOut",
-      repeat: -1,
-      yoyo: true
-    });
-  });
-}
-
 gsap.registerPlugin(ScrollTrigger);
 
 const lenis = new Lenis({ duration: 1.1, smoothWheel: true, wheelMultiplier: 0.9 });
 lenis.on("scroll", ScrollTrigger.update);
 gsap.ticker.add((time) => lenis.raf(time * 1000));
 gsap.ticker.lagSmoothing(0);
+
+const heroSection = document.querySelector(".agrumea-hero");
+const marqueeTrack = document.querySelector(".hero-product-track");
+const heroProducts = [...document.querySelectorAll(".hero-product")];
+
+if (heroSection && marqueeTrack) {
+  const getTravel = () => {
+    const halfWidth = marqueeTrack.scrollWidth / 2;
+    return Math.max(0, halfWidth - window.innerWidth * 0.55);
+  };
+
+  gsap.set(marqueeTrack, { x: 0 });
+
+  const heroTween = gsap.to(marqueeTrack, {
+    x: () => -getTravel(),
+    ease: "none",
+    scrollTrigger: {
+      trigger: heroSection,
+      start: "top top",
+      end: () => "+=" + Math.max(2200, getTravel() * 1.35),
+      pin: true,
+      scrub: 0.7,
+      anticipatePin: 1,
+      invalidateOnRefresh: true
+    }
+  });
+
+  heroProducts.forEach((product, i) => {
+    const img = product.querySelector("img");
+    if (!img) return;
+    gsap.fromTo(img,
+      { y: i % 2 ? 12 : -12, rotation: i % 2 ? 1.5 : -1.5 },
+      {
+        y: i % 2 ? -18 : 18,
+        rotation: i % 2 ? -2.5 : 2.5,
+        ease: "none",
+        scrollTrigger: {
+          trigger: heroSection,
+          start: "top top",
+          end: () => "+=" + Math.max(2200, getTravel() * 1.35),
+          scrub: 0.7
+        }
+      }
+    );
+  });
+
+  const openProductDetail = (product) => {
+    const index = Number(product.dataset.productIndex);
+    const target = steps[index];
+    if (!target) return;
+    lenis.scrollTo(target, { offset: window.innerHeight * 0.02, duration: 1.4 });
+  };
+
+  heroProducts.forEach((product) => {
+    product.addEventListener("click", () => openProductDetail(product));
+    product.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openProductDetail(product);
+      }
+    });
+  });
+
+  window.addEventListener("resize", () => ScrollTrigger.refresh());
+}
+
 
 gsap.from(".manifesto-text", { y:70, opacity:0, scrollTrigger:{trigger:".manifesto",start:"top 72%",end:"top 42%",scrub:1}});
 
