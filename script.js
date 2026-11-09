@@ -8,68 +8,109 @@ gsap.ticker.lagSmoothing(0);
 const heroSection = document.querySelector(".agrumea-hero");
 const marqueeTrack = document.querySelector(".hero-product-track");
 const heroProducts = [...document.querySelectorAll(".hero-product")];
+const enterProducts = document.getElementById("enter-products");
+const productsIntro = document.getElementById("productos");
 
-if (heroSection && marqueeTrack) {
-  const getTravel = () => {
-    const halfWidth = marqueeTrack.scrollWidth / 2;
-    return Math.max(0, halfWidth - window.innerWidth * 0.55);
-  };
+let heroGateLocked = document.body.classList.contains("hero-gate-locked");
+let heroProgress = 0;
+let heroTouchY = 0;
 
-  gsap.set(marqueeTrack, { x: 0 });
+function getHeroTravel() {
+  if (!marqueeTrack) return 0;
+  const halfWidth = marqueeTrack.scrollWidth / 2;
+  return Math.max(0, halfWidth - window.innerWidth * 0.52);
+}
 
-  const heroTween = gsap.to(marqueeTrack, {
-    x: () => -getTravel(),
-    ease: "none",
-    scrollTrigger: {
-      trigger: heroSection,
-      start: "top top",
-      end: () => "+=" + Math.max(2200, getTravel() * 1.35),
-      pin: true,
-      scrub: 0.7,
-      anticipatePin: 1,
-      invalidateOnRefresh: true
-    }
+function renderHeroProgress(progress, immediate = false) {
+  heroProgress = Math.max(0, Math.min(1, progress));
+  const travel = getHeroTravel();
+  const x = -travel * heroProgress;
+
+  gsap.to(marqueeTrack, {
+    x,
+    duration: immediate ? 0 : .42,
+    ease: "power3.out",
+    overwrite: true
   });
 
   heroProducts.forEach((product, i) => {
-    const img = product.querySelector(".hero-product-media");
-    if (!img) return;
-    gsap.fromTo(img,
-      { y: i % 2 ? 12 : -12, rotation: i % 2 ? 1.5 : -1.5 },
-      {
-        y: i % 2 ? -18 : 18,
-        rotation: i % 2 ? -2.5 : 2.5,
-        ease: "none",
-        scrollTrigger: {
-          trigger: heroSection,
-          start: "top top",
-          end: () => "+=" + Math.max(2200, getTravel() * 1.35),
-          scrub: 0.7
-        }
-      }
-    );
+    const media = product.querySelector(".hero-product-media");
+    if (!media) return;
+    const phase = (heroProgress * Math.PI * 2) + i * .55;
+    gsap.to(media, {
+      y: Math.sin(phase) * 14,
+      rotation: Math.cos(phase) * 2.4,
+      duration: immediate ? 0 : .45,
+      ease: "power2.out",
+      overwrite: "auto"
+    });
+  });
+}
+
+function unlockHeroAndEnterProducts() {
+  if (!heroGateLocked) return;
+  heroGateLocked = false;
+  document.body.classList.remove("hero-gate-locked");
+  document.body.classList.add("hero-gate-open");
+  lenis.start();
+
+  requestAnimationFrame(() => {
+    ScrollTrigger.refresh();
+    if (productsIntro) {
+      lenis.scrollTo(productsIntro, { offset: -24, duration: 1.15 });
+    }
+  });
+}
+
+if (heroSection && marqueeTrack) {
+  lenis.stop();
+  renderHeroProgress(0, true);
+
+  window.addEventListener("wheel", (e) => {
+    if (!heroGateLocked) return;
+    e.preventDefault();
+    const delta = e.deltaY || e.deltaX;
+    renderHeroProgress(heroProgress + delta * 0.00042);
+  }, { passive: false });
+
+  window.addEventListener("keydown", (e) => {
+    if (!heroGateLocked) return;
+    if (["ArrowDown","ArrowRight","PageDown"," "].includes(e.key)) {
+      e.preventDefault();
+      renderHeroProgress(heroProgress + .1);
+    } else if (["ArrowUp","ArrowLeft","PageUp"].includes(e.key)) {
+      e.preventDefault();
+      renderHeroProgress(heroProgress - .1);
+    }
   });
 
-  const openProductDetail = (product) => {
-    const index = Number(product.dataset.productIndex);
-    if (!Number.isInteger(index) || !items[index]) return;
-    manualSelectionUntil = performance.now() + 1200;
-    activateProduct(index, index >= activeIndex ? 1 : -1, false);
-    const target = showcase;
-    if (target) lenis.scrollTo(target, { offset: 0, duration: 1.05 });
-  };
+  heroSection.addEventListener("touchstart", (e) => {
+    if (!heroGateLocked) return;
+    heroTouchY = e.touches[0]?.clientY || 0;
+  }, { passive: true });
 
+  heroSection.addEventListener("touchmove", (e) => {
+    if (!heroGateLocked) return;
+    const y = e.touches[0]?.clientY || heroTouchY;
+    const delta = heroTouchY - y;
+    heroTouchY = y;
+    renderHeroProgress(heroProgress + delta * 0.0022);
+  }, { passive: true });
+
+  enterProducts?.addEventListener("click", (e) => {
+    e.preventDefault();
+    unlockHeroAndEnterProducts();
+  });
+
+  // Product cards on the locked hero remain interactive visually,
+  // but only the top PRODUCTS control unlocks vertical navigation.
   heroProducts.forEach((product) => {
-    product.addEventListener("click", () => openProductDetail(product));
-    product.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        openProductDetail(product);
-      }
+    product.addEventListener("click", (e) => {
+      if (heroGateLocked) e.preventDefault();
     });
   });
 
-  window.addEventListener("resize", () => ScrollTrigger.refresh());
+  window.addEventListener("resize", () => renderHeroProgress(heroProgress, true));
 }
 
 
@@ -303,7 +344,7 @@ if (finePointerShowcase) {
   });
 }
 
-document.querySelectorAll("a[href^='#']").forEach((link)=>{
+document.querySelectorAll("a[href^='#']:not(#enter-products)").forEach((link)=>{
   link.addEventListener("click",(e)=>{
     const target=document.querySelector(link.getAttribute("href"));
     if(!target) return;
