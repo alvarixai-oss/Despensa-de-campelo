@@ -52,9 +52,11 @@ if (heroSection && marqueeTrack) {
 
   const openProductDetail = (product) => {
     const index = Number(product.dataset.productIndex);
-    const target = steps[index];
-    if (!target) return;
-    lenis.scrollTo(target, { offset: window.innerHeight * 0.02, duration: 1.4 });
+    if (!Number.isInteger(index) || !items[index]) return;
+    manualSelectionUntil = performance.now() + 1200;
+    activateProduct(index, index >= activeIndex ? 1 : -1, false);
+    const target = showcase;
+    if (target) lenis.scrollTo(target, { offset: 0, duration: 1.05 });
   };
 
   heroProducts.forEach((product) => {
@@ -191,7 +193,7 @@ dockButtons.forEach(btn=>{
     const i = Number(btn.dataset.go);
     if (!Number.isInteger(i) || !items[i]) return;
 
-    manualSelectionUntil = performance.now() + 900;
+    manualSelectionUntil = performance.now() + 1200;
     const direction = i >= activeIndex ? 1 : -1;
     activateProduct(i, direction, false);
 
