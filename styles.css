@@ -139,3 +139,21 @@ background-size:8vw 8vw;mask-image:linear-gradient(to bottom,transparent,black 1
 @media (prefers-reduced-motion:reduce){
   .hero-product-media,.hero-product img,.showcase-product,.product-orbit{transform:none!important;transition:none!important}
 }
+
+/* Product selector reliability and visibility */
+.product-dock{z-index:40;pointer-events:auto;background:rgba(38,21,17,.72);border-color:rgba(255,255,255,.22)}
+.product-dock button{position:relative;z-index:2;pointer-events:auto;overflow:hidden;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.1);opacity:.9}
+.product-dock button:hover{opacity:1;transform:translateY(-3px);background:rgba(255,255,255,.2)}
+.product-dock button.is-active{opacity:1;border-color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.24)}
+.product-dock img{width:100%;height:100%;object-fit:contain;opacity:1}
+.product-dock button[data-go="6"] img{object-fit:cover;border-radius:50%;filter:contrast(1.08) brightness(1.05)}
+.showcase-item.is-active .showcase-product,
+.showcase-item.is-active .showcase-product>img,
+.showcase-item.is-active .image-medallion{opacity:1!important;visibility:visible!important}
+.showcase-product>img,.image-medallion{min-width:120px;min-height:120px}
+.showcase-item[data-index="0"] .showcase-product>img,
+.showcase-item[data-index="1"] .showcase-product>img,
+.showcase-item[data-index="5"] .showcase-product>img,
+.showcase-item[data-index="7"] .showcase-product>img{
+  filter:contrast(1.12) saturate(1.08) drop-shadow(0 45px 45px rgba(0,0,0,.32));
+}
