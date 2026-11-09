@@ -117,18 +117,28 @@ function activateProduct(index, direction = 1) {
   dockButtons.forEach((b,i)=>b.classList.toggle("is-active",i===index));
   gsap.to(progress,{width:`${((index+1)/items.length)*100}%`,duration:.55,ease:"power3.out"});
   activeIndex = index;
+  startAmbientMotion(newItem, index);
 }
 
-items.forEach((item,i)=>{
-  const product = item.querySelector(".showcase-product");
-  const img = item.querySelector(".showcase-product > img, .image-medallion");
-  const orbitA = item.querySelector(".orbit-a");
-  const orbitB = item.querySelector(".orbit-b");
-  gsap.to(product,{y:-12,duration:2.8+i*.13,repeat:-1,yoyo:true,ease:"sine.inOut"});
-  if(img) gsap.to(img,{rotation:i%2?3:-3,duration:3.6+i*.12,repeat:-1,yoyo:true,ease:"sine.inOut"});
-  gsap.to(orbitA,{rotation:360,duration:22+i,repeat:-1,ease:"none"});
-  gsap.to(orbitB,{rotation:-360,duration:17+i,repeat:-1,ease:"none"});
-});
+let ambientTweens = [];
+function startAmbientMotion(item, i) {
+  ambientTweens.forEach(t => t.kill());
+  ambientTweens = [];
+  const product = item?.querySelector(".showcase-product");
+  const img = item?.querySelector(".showcase-product > img, .image-medallion");
+  const orbitA = item?.querySelector(".orbit-a");
+  const orbitB = item?.querySelector(".orbit-b");
+  if (!product) return;
+
+  ambientTweens.push(
+    gsap.to(product,{y:-10,duration:3.1,repeat:-1,yoyo:true,ease:"sine.inOut"}),
+    gsap.to(orbitA,{rotation:360,duration:24+i,repeat:-1,ease:"none"}),
+    gsap.to(orbitB,{rotation:-360,duration:19+i,repeat:-1,ease:"none"})
+  );
+  if (img) ambientTweens.push(
+    gsap.to(img,{rotation:i%2?2.2:-2.2,duration:4.2,repeat:-1,yoyo:true,ease:"sine.inOut"})
+  );
+}
 
 steps.forEach((step,index)=>{
   ScrollTrigger.create({
@@ -205,4 +215,4 @@ if (!reduceMotion) {
   });
 }
 
-window.addEventListener("load",()=>{activateProduct(0,1);ScrollTrigger.refresh()});
+window.addEventListener("load",()=>{startAmbientMotion(items[0],0);activateProduct(0,1);ScrollTrigger.refresh()});
